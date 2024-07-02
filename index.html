@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pacer de Respiração</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .controls {
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            padding: 10px;
+            position: absolute;
+            top: 0;
+        }
+        .controls input {
+            margin: 5px;
+            padding: 10px;
+            width: 80%;
+            box-sizing: border-box;
+        }
+        .controls button {
+            margin-top: 10px;
+            padding: 10px 20px;
+        }
+        .circle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 80%;
+            position: relative;
+        }
+        .circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #3498db;
+            position: absolute;
+            bottom: 10%;
+            transition: all linear;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <input type="number" id="inspiration" placeholder="Tempo de inspiração (s)">
+        <input type="number" id="pause1" placeholder="Tempo de pausa (s)">
+        <input type="number" id="expiration" placeholder="Tempo de expiração (s)">
+        <input type="number" id="pause2" placeholder="Tempo de pausa (s)">
+        <button id="startButton">Iniciar</button>
+        <button id="stopButton" style="display:none;">Interromper</button>
+    </div>
+    <div class="circle-container">
+        <div class="circle" id="circle"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inspirationInput = document.getElementById('inspiration');
+            const pause1Input = document.getElementById('pause1');
+            const expirationInput = document.getElementById('expiration');
+            const pause2Input = document.getElementById('pause2');
+            const startButton = document.getElementById('startButton');
+            const stopButton = document.getElementById('stopButton');
+            const circle = document.getElementById('circle');
+            let interval;
+
+            const startBreathing = () => {
+                const inspirationTime = Number(inspirationInput.value) * 1000;
+                const pause1Time = Number(pause1Input.value) * 1000;
+                const expirationTime = Number(expirationInput.value) * 1000;
+                const pause2Time = Number(pause2Input.value) * 1000;
+
+                if (!inspirationTime || !pause1Time || !expirationTime || !pause2Time) {
+                    alert('Por favor, preencha todos os campos.');
+                    return;
+                }
+
+                inspirationInput.disabled = true;
+                pause1Input.disabled = true;
+                expirationInput.disabled = true;
+                pause2Input.disabled = true;
+                startButton.style.display = 'none';
+                stopButton.style.display = 'block';
+
+                let phase = 0;
+                const phases = [
+                    { duration: inspirationTime, action: () => moveCircle('top') },
+                    { duration: pause1Time, action: () => pauseCircle() },
+                    { duration: expirationTime, action: () => moveCircle('bottom') },
+                    { duration: pause2Time, action: () => pauseCircle() },
+                ];
+
+                const nextPhase = () => {
+                    const currentPhase = phases[phase];
+                    currentPhase.action();
+                    phase = (phase + 1) % phases.length;
+                    interval = setTimeout(nextPhase, currentPhase.duration);
+                };
+
+                nextPhase();
+            };
+
+            const stopBreathing = () => {
+                clearTimeout(interval);
+                inspirationInput.disabled = false;
+                pause1Input.disabled = false;
+                expirationInput.disabled = false;
+                pause2Input.disabled = false;
+                startButton.style.display = 'block';
+                stopButton.style.display = 'none';
+                moveCircle('bottom');
+            };
+
+            const moveCircle = (position) => {
+                if (position === 'top') {
+                    circle.style.transform = 'translateY(-80%)';
+                } else {
+                    circle.style.transform = 'translateY(0)';
+                }
+            };
+
+            const pauseCircle = () => {
+                circle.style.transitionDuration = '0s';
+                setTimeout(() => circle.style.transitionDuration = 'all linear', 50);
+            };
+
+            startButton.addEventListener('click', startBreathing);
+            stopButton.addEventListener('click', stopBreathing);
+        });
+    </script>
+</body>
+</html>
